@@ -1,0 +1,6 @@
+.idea
+*.iml
+dossier-wrapper/dossier-wrapper-client/target/
+dossier-wrapper/dossier-wrapper-ejb/target/
+wrapper-ear/target/
+wrapper-war/target/
