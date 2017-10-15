@@ -5,5 +5,5 @@ import wieczorek.jakub.wrapper.dto.FileParam;
 
 public interface FileBuilder
 {
-    void wrapFile(FileParam aParam, RemoteInputStream remoteFileData);
+    String wrapFile(FileParam aParam, String aFileContent);
 }

@@ -4,5 +4,5 @@ import java.io.InputStream;
 
 public interface FileService
 {
-    void saveFile(String aTarget, InputStream aInputStream);
+   String readInputStream(InputStream aInputStream);
 }
