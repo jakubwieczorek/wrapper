@@ -1,5 +1,6 @@
 package wieczorek.jakub.wrapper.web;
 
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -9,11 +10,17 @@ import wieczorek.jakub.wrapper.boundry.FileBuilder;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
+import java.nio.file.*;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.IOUtils;
+import wieczorek.jakub.wrapper.dto.AbstractFile;
 import wieczorek.jakub.wrapper.dto.FileParam;
+import wieczorek.jakub.wrapper.dto.Type;
 import wieczorek.jakub.wrapper.service.FileService;
 
 /**
@@ -30,28 +37,32 @@ public class BaseCommunicationCtr
     @Autowired
     private FileService fileService;
 
-    private FileParam fileParam;
+    private AbstractFile abstractFile;
 
+    // in js put validation, next to browse btn browsed input file name,
+    // in js add help section
+    // delete tools add columns like container col-md-5 etc.
     @RequestMapping(method = RequestMethod.GET, value = {"download/"})
     public void downloadFile(HttpServletResponse response) throws IOException
     {
-        if(fileParam == null)
+        if(abstractFile == null)
         {
             return;
         }
 
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileParam.getFileName() + "\"");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + abstractFile.getFileName() + ".zip\"");
         response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
-        String wrappedContent = mFileBuilder.wrapFile(new FileParam(), fileParam.getContent());
+        Set<Type> types = new HashSet<>();
+        types.add(Type.ENTITY);
+        types.add(Type.DTO);
+        types.add(Type.SQL);
 
-        InputStream inputStream = new ByteArrayInputStream(wrappedContent.getBytes(StandardCharsets.UTF_8.name()));
+        Set<AbstractFile> wrappedContents = mFileBuilder.wrapFile(abstractFile, types);
 
-        IOUtils.copy(inputStream, response.getOutputStream());
+        IOUtils.copy(new ByteArrayInputStream(fileService.createZipByteArray(wrappedContents)), response.getOutputStream());
 
-        fileParam = null;
-
-        inputStream.close();
+        abstractFile = null;
     }
 
     @RequestMapping(method = RequestMethod.POST, value = {"upload/"})
@@ -60,12 +71,12 @@ public class BaseCommunicationCtr
         Iterator<String> $it = aRequest.getFileNames();
         MultipartFile multipartFile = aRequest.getFile($it.next());
 
-        String fileName = multipartFile.getOriginalFilename();
+        String fileName = FilenameUtils.removeExtension(multipartFile.getOriginalFilename());
 
         try
         {
             String content = fileService.readInputStream(multipartFile.getInputStream());
-            fileParam = new FileParam(fileName, content);
+            abstractFile = new AbstractFile(fileName, content);
         } catch (IOException | RuntimeException e)
         {
             throw new RuntimeException(e);

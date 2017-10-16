@@ -1,11 +1,15 @@
 package wieczorek.jakub.wrapper.service;
 
 import org.springframework.stereotype.Service;
+import wieczorek.jakub.wrapper.dto.AbstractFile;
+import wieczorek.jakub.wrapper.dto.FileParam;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import javax.persistence.criteria.CriteriaBuilder;
+import java.io.*;
+import java.util.List;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Service
 public class FileServiceImpl implements FileService
@@ -31,5 +35,28 @@ public class FileServiceImpl implements FileService
         {
             throw new RuntimeException(ex);
         }
+    }
+
+    @Override
+    public byte [] createZipByteArray(Set<AbstractFile> aFiles) throws IOException
+    {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
+
+        try
+        {
+            for(AbstractFile file : aFiles)
+            {
+                ZipEntry zipEntry = new ZipEntry(file.getFileName());
+                zipOutputStream.putNextEntry(zipEntry);
+                zipOutputStream.write(file.getContents().getBytes());
+                zipOutputStream.closeEntry();
+            }
+        } finally
+        {
+            zipOutputStream.close();
+        }
+
+        return byteArrayOutputStream.toByteArray();
     }
 }

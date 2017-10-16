@@ -1,5 +1,6 @@
-import sys, csv
+from CreatorUtils import *
 from StringIO import StringIO
+import csv
 
 class Creator:
 	def __init__(self, argv):
@@ -12,25 +13,23 @@ class Creator:
 		self.argv = argv
 
 	def createEntityFile(self, a_csv_string):
-		fieldType=  {'L': 'BigDecimal', 'N': 'Long', 'D': 'Date', 'A': 'String'}
+		fieldType = {'L': 'BigDecimal', 'N': 'Long', 'D': 'Date', 'A': 'String'}
 		positionDictionary = {'class': self.col_with_tab_name, 'type': self.col_with_flag, 'field': self.col_with_name}
 		structureDictionary = {'class': 'public class {0} \n{{\n', 'field': '\tprivate {0} {1};\n\n', 'end': '}', 'suffix': '.java'}
 		annotationDictionary = {'class': '@Entity\n@Table(name = {0})\n', 'field': '\t@Column(name = "{0}")\n'}
 
-		return self.createBody(a_csv_string, fieldType, positionDictionary, structureDictionary, annotationDictionary = annotationDictionary)
+		return createBody(a_csv_string, fieldType, positionDictionary, structureDictionary, annotationDictionary = annotationDictionary)
 
-	def createBody(self, a_csv_string, aFieldDictionary, aPositionDictionary, aStructureDictionary, **kwargs):
-		aAnnotationDictionary = None
-		formatField = None
-		formatAnnotation = None
-		for k, v in kwargs.iteritems():
-			if k == "annotationDictionary":
-				aAnnotationDictionary = v
-			if k == "format":
-				formatField = v
-			if k == "formatAnnotation":
-				formatAnnotation = v
+	def createDtoFile(self, a_csv_string):
+		fieldType = {'L': 'BigDecimal', 'N': 'Long', 'D': 'Date', 'A': 'String'}
+		positionDictionary = {'class': self.col_with_tab_name, 'type': self.col_with_flag,
+							  'field': self.col_with_name}
+		structureDictionary = {'class': 'public class {0}DTO \n{{\n', 'field': '\tprivate {0} {1};\n\n', 'end': '}',
+							   'suffix': '.dto'}
 
+		return createBody(a_csv_string, fieldType, positionDictionary, structureDictionary)
+
+	def createSql(self, a_csv_string):
 		body = ''
 
 		isOpen = False
@@ -39,37 +38,45 @@ class Creator:
 
 		content = csv.reader(buff, delimiter=";")
 
+
+		sqlContent = ''
+		commentContent = ''
+
+		isOpen = False
+
+		outputFile = None
+
+		tableName = ''
 		for row in content:
-			classNamePos = row[aPositionDictionary['class']].strip()
-			fieldTypePos = row[aPositionDictionary['type']].strip()
-			fieldNamePos = row[aPositionDictionary['field']].strip()
+			col_with_name = row[self.col_with_tab_name].strip()
+			fieldsType = row[self.col_with_flag].strip()
+			field = row[self.col_with_name].strip()
+			length = row[self.col_with_length].strip()
 
-			if classNamePos != '':
+			if self.col_with_comment is not None:
+				comment = row[self.col_with_comment].strip()
 
+			if col_with_name != '':
+				tableName = col_with_name
 				if isOpen:
-					body += aStructureDictionary['end']
+					sqlContent = sqlContent[:-2]
+					sqlContent += '\n);'
 					isOpen = False
 
 				isOpen = True
 
-				body += '\n\n'
+				sqlContent += '\n\n'
 
-				if aAnnotationDictionary is not None:
-					body += aAnnotationDictionary['class'].format(classNamePos)
-				body += aStructureDictionary['class'].format(classNamePos)
+				sqlContent += 'CREATE TABLE {0}'.format(col_with_name) + '\n(\n'
+				commentContent = ''
+			if isOpen == True and self.col_with_name != '' and row[self.col_with_flag] != '':
+				sqlContent += createField(fieldsType, field, length)
 
-			if isOpen == True and fieldNamePos != '' and fieldTypePos != '':
-				if aAnnotationDictionary is not None:
-					if formatAnnotation is not None: # format annotation field for example to upper
-						body += aAnnotationDictionary['field'].format(formatAnnotation(fieldNamePos))
-					else:
-						body += aAnnotationDictionary['field'].format(fieldNamePos)
+			# if self.col_with_comment is not None:
+			# 	commentContent += self.createComment(tableName, field, comment)
 
-				if formatField is not None: # format field for example to upper
-					body += aStructureDictionary['field'].format(aFieldDictionary[fieldTypePos], formatField(fieldNamePos))
-				else:
-					body += aStructureDictionary['field'].format(aFieldDictionary[fieldTypePos], fieldNamePos)
+		sqlContent = sqlContent[:-2]
+		sqlContent += '\n);'
 
-		body += aStructureDictionary['end']
+		return sqlContent
 
-		return body

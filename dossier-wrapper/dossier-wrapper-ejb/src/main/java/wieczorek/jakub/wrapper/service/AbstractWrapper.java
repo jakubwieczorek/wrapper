@@ -1,10 +1,15 @@
 package wieczorek.jakub.wrapper.service;
 
 import org.python.util.PythonInterpreter;
+import wieczorek.jakub.wrapper.dto.AbstractFile;
+import wieczorek.jakub.wrapper.dto.Type;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 public abstract class AbstractWrapper implements Wrapper
 {
@@ -29,16 +34,17 @@ public abstract class AbstractWrapper implements Wrapper
 
     protected PythonInterpreter pythonInterpreter;
 
-    protected AbstractWrapper(String aPyScript)
+    protected AbstractWrapper(String [] aPyScript)
     {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-
-        InputStream inputStream = classLoader.getResourceAsStream(aPyScript);
-
         this.pythonInterpreter = new PythonInterpreter();
-        pythonInterpreter.execfile(inputStream);
-        // kopiuj jara do tmp dodaj python home i jythonhome pythonpath do tego jara
+
+        for (String anAPyScript : aPyScript)
+        {
+            InputStream inputStream = classLoader.getResourceAsStream(anAPyScript);
+            pythonInterpreter.execfile(inputStream);
+        }
     }
 
-    public abstract String wrap(String aContentToWrap);
+    public abstract Set<AbstractFile> wrapFile(AbstractFile aAbstractFile, Set<Type> aTypes);
 }

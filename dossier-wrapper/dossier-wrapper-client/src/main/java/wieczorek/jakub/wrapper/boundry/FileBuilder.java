@@ -1,9 +1,12 @@
 package wieczorek.jakub.wrapper.boundry;
 
-import com.healthmarketscience.rmiio.RemoteInputStream;
-import wieczorek.jakub.wrapper.dto.FileParam;
+import wieczorek.jakub.wrapper.dto.AbstractFile;
+import wieczorek.jakub.wrapper.dto.Type;
+
+import java.util.Map;
+import java.util.Set;
 
 public interface FileBuilder
 {
-    String wrapFile(FileParam aParam, String aFileContent);
+    Set<AbstractFile> wrapFile(AbstractFile aAbstractFile, Set<Type> aTypes);
 }
