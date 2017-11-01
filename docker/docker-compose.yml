@@ -1,0 +1,18 @@
+version: '2'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: dockerfile-web
+    ports:
+      - "9990:9990" # admin
+      - "8443:8443" 
+      - "8080:8080" # console
+      - "8787:8787" # debug
+    tty: true
+  ci:
+    build:
+      context: .
+      dockerfile: dockerfile-ci
+    ports:
+      - "9090:8080"

@@ -1,0 +1,11 @@
+#docker exec -u 0 -it docker_web_1 bash log as root
+
+FROM jboss/wildfly
+
+# administrator console jboss
+RUN /opt/jboss/wildfly/bin/add-user.sh admin admin --silent
+CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0", "-bmanagement", "0.0.0.0"] # cmd is argument for entrypoint(default is bash)
+
+ADD standalone.xml /opt/jboss/wildfly/standalone/configuration
+ADD standalone.conf /opt/jboss/wildfly/bin/
+ADD jython-standalone.jar /tmp/
