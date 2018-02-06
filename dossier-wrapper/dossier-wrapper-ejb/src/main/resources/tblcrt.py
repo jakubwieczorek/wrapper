@@ -7,7 +7,7 @@ class Creator:
 		self.col_with_name = 1
 		self.col_with_length =3
 		self.col_with_comment = None
-		self.col_with_flag = 2
+		self.col_with_flag = 2 # type string etc.
 		self.col_with_tab_name = 0
 
 		self.argv = argv
@@ -16,7 +16,7 @@ class Creator:
 		fieldType = {'L': 'BigDecimal', 'N': 'Long', 'D': 'Date', 'A': 'String'}
 		positionDictionary = {'class': self.col_with_tab_name, 'type': self.col_with_flag, 'field': self.col_with_name}
 		structureDictionary = {'class': 'public class {0} \n{{\n', 'field': '\tprivate {0} {1};\n\n', 'end': '}', 'suffix': '.java'}
-		annotationDictionary = {'class': '@Entity\n@Table(name = {0})\n', 'field': '\t@Column(name = "{0}")\n'}
+		annotationDictionary = {'class': '@Entity\n@Table(name = "{0}")\n', 'field': '\t@Column(name = "{0}")\n'}
 
 		return createBody(a_csv_string, fieldType, positionDictionary, structureDictionary, annotationDictionary = annotationDictionary)
 

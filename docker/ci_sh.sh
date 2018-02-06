@@ -8,7 +8,7 @@
 # on docker machine:
 
 apt-get update;
-apt-get install mvn; 
+apt-get install maven; 
 
 
 # github hook
